@@ -1,0 +1,105 @@
+---
+title: 'Prob2CP3: Uma análise sua'
+author: "Thierry Barros"
+date: "May 29, 2018"
+output: html_document
+---
+
+
+```{r, echo =FALSE}
+library(dplyr)
+library(tidyverse)
+library(here)
+library(plotly)
+theme_set(theme_bw())
+```
+Existem muitas características que podem ser análisadas em uma música, dessa vez, decidi algumas delas utlizando como base dados do tropicalsitas, luiz gonzada e jackson, grandes vozes da música brasileira. 
+```{r}
+tropicalistas = read_csv(here("data/tropicalistas.csv"))
+luiz = read_csv(here("data/luiz_gonzaga.csv"))
+jackson = read_csv(here("data/jackson.csv"))
+
+trop_jovem <- full_join(tropicalistas, luiz) 
+cancoes <- merge(trop_jovem, jackson, all = TRUE)
+
+```
+A primeira pergunta que me veio a mente foi:
+
+#Música gravadas ao vivo  da música influencia na sua acustica?
+
+```{r}
+cancoes %>% 
+    plot_ly(y = ~liveness,
+            x = ~acousticness,
+            color = ~style,
+            text = ~paste('Música: ', track_name)) %>% 
+    layout(title = "Relação entre musica gravada ao vivo e sua acustica",
+           yaxis = list(title = "Acustica"),
+           xaxis = list(title = "Popularidade"))
+
+```
+
+Não parece ter nenhuma relação entre essas duas característica, contrariando o pensamento comum de que o ambiente da produção de uma música ao vivo poderia impactar negativamente na acustica da música, devidamente a poluição sonora produzida pelo ambiente e pelos fãs. Mas acredito que isso não seja impactante devido ao modo como são gravadas, tecnologia envolvida, e uma "limpeza" da musica, utilizando ferramentes de áudio.
+
+#Músicas mais dançáveis são mais energéticas?
+```{r}
+cancoes %>% 
+    plot_ly(x = ~danceability,
+            y = ~energy,
+            size = ~track_popularity,
+            color = ~style,
+            type = 'scatter',
+            text = ~paste('Música: ', track_name,
+                          '<br>Popularidade: ', track_popularity)) %>% 
+    layout(title = "Relação entre dançabilidade e energia",
+           xaxis = list(title = "Dançabilidade"),
+           yaxis = list(title = "Energia"))
+```
+Também parece não haver relação entre a a dançabilidade e energia da música, essa dúvida vinha da ideia que músicas mais animadas agitam o povo e induzem as pessoas a querem dançar, mas parece que a energia da música não tem muito impacto da sua dançabilidade. Algo que pode ser notado é que a popularida da música(tamanho dos pontos) parece ter um padrão de energia e dançabilidade, músicas que tem engergia entre 0.4 e 0.6 e dançabilidade entre 0.4 e 0.6, centro da imagem tem uma maior popularidade.
+
+Já que as respostas das duas primeiras perguntas foram contra a ideia inicial e quebraram a espectativa de influencia de uma caracteristicas sobre a outra, decidi buscar novas relações entre as canções, algo que pudesse impactar realmente na música.
+
+#E com relação à duração da música e sua energia, quanto mais alegre maior?
+```{r}
+cancoes %>% 
+    plot_ly(x = ~tempo,
+            y = ~energy,
+            type = 'scatter',
+            size = ~loudness,
+            text = ~paste('Música: ', track_name,
+                          '<br>Valência: ', valence,
+                          '<br>Barulho: ', loudness)) %>% 
+    layout(title = "Relação entre tempo e humor das canções",
+           xaxis = list(title = "Duração da canção (ms)"),
+           yaxis = list(title = "Energia"))
+
+```
+Parece não haver relação entre a duração e o movimento musical, mas algo que surpreendeu e pode ser notado foi que quanto menor a energia da musica menor o loudness(barulho), isso é interessante pois aí podemos ver uma clara relação de quee o barulho pode impactar na energia da música, músicas mais energéticas são mais barulhentas. Era algo que não estava primeiramente sendo buscado mas que a partir de análise pode-se perceber essa relação.
+
+Outro questionamento que podemos ter a partir dos resultados anteriores foi:
+
+#Existe alguma padrão entre músicas com discurso e seu instrumental?
+```{r}
+cancoes %>% 
+    plot_ly(x = ~speechiness,
+            y = ~instrumentalness,
+            type = 'scatter',
+            color = ~style,
+            size = ~track_popularity,
+            text = ~paste('Música: ', track_name,
+                          '<br>Artista: ', artist,
+                          '<br>Popularidade: ', track_popularity)) %>% 
+    layout(title = "Discurso em uma canção",
+           xaxis = list(title = "Discurso"),
+           yaxis = list(title = "Instrumentabilidade"))
+```
+
+Pelos dados parece que sim música que tem discurso mais longos tendem a ter uma instrumentalidade menor que as que não tem discurso ou e tem discurso mais curtos. 
+
+Diante dessas análises acima, podemos perceber alguns padrões nas músicas de cada movimento, descobrir fatos curiosos com relação ao humor que cada canção desperta no público. Lembrando que esses dados são fornecidos pela API do Spotify, dessa forma alguns desses dados podem estar impressisos.
+
+
+
+
+
+
